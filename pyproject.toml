@@ -5,8 +5,8 @@ requires      = ["setuptools>=61.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "webcrawler"
-version = "0.0.1"
+name = "webcrawler-hofmetyl"
+version = "0.0.2"
 description = "Web utilities around web crawling"
 readme = "README.md"
 authors = [{ name = "Tyler Hofmeister", email = "tyler.hofmeister@gmail.com" }]
@@ -18,9 +18,9 @@ classifiers = [
 ]
 keywords = ["web", "crawling"]
 dependencies = [
-    'tomli; python_version < "3.11"'
+    'tomli; python_version < "3.10"'
 ]
-requires-python = ">=3.11"
+requires-python = ">=3.10"
 
 [project.urls]
 Homepage = "https://github.com/tylerhof/webcrawler"
@@ -30,3 +30,6 @@ Homepage = "https://github.com/tylerhof/webcrawler"
 #
 #Note: to release, in venv run:
 # twine upload -r testpypi dist/*
+#
+# Note to install in another project run:
+# pip install --index-url https://test.pypi.org/simple/ webcrawler-hofmetyl

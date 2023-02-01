@@ -1,10 +1,7 @@
 import re
 
-from exceptionhandling.access import Constant
 from exceptionhandling.exception_handler import ExceptionHandler, Unwrap, Safe
 from exceptionhandling.functor import Functor
-from exceptionhandling.utils import ToDictionary
-from expression import pipe
 from scrapy.crawler import CrawlerProcess
 from scrapy.spiders import CrawlSpider, Rule
 from scrapy.signalmanager import dispatcher
