@@ -1,0 +1,32 @@
+# pyproject.toml
+
+[build-system]
+requires      = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "webcrawler"
+version = "0.0.1"
+description = "Web utilities around web crawling"
+readme = "README.md"
+authors = [{ name = "Tyler Hofmeister", email = "tyler.hofmeister@gmail.com" }]
+license = { file = "LICENSE" }
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+]
+keywords = ["web", "crawling"]
+dependencies = [
+    'tomli; python_version < "3.11"'
+]
+requires-python = ">=3.11"
+
+[project.urls]
+Homepage = "https://github.com/tylerhof/webcrawler"
+
+#Note: to build, update version, then in base terminal run:
+# python3 -m build --sdist --wheel .
+#
+#Note: to release, in venv run:
+# twine upload -r testpypi dist/*
