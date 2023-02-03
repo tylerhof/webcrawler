@@ -54,7 +54,11 @@ class CrawlSpiderSupplier(Functor):
                         process_links=process_links,
                         callback='parse_item',
                         follow=True),),
-                     "parse_item": (lambda self, response: {'url': response.url, 'body': response.body})})
+                     'parse_item': (lambda self, response: {'url': response.url, 'body': response.body}),
+                     'custom_settings' : {'DOWNLOAD_DELAY': 2,
+                                           'RANDOMIZE_DOWNLOAD_DELAY': False,
+                                          }
+                    })
 
 
     def parse_item(self, response):
