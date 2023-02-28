@@ -44,28 +44,24 @@ class CrawlSpiderSupplier(Functor):
         super().__init__(policy)
 
     def apply(self, input):
+        link_extractor = LinkExtractor(
+                        allow=[re.escape(input['allowed_domains'][0])])
         return type("AnonymousSpiderClass",
                     (CrawlSpider,),
                     {'name' : input['name'],
                     'allowed_domains' : input['allowed_domains'],
                     'start_urls' : input['start_urls'],
-                    'rules' : (Rule(LinkExtractor(
-                        allow=[re.escape(input['allowed_domains'][0])]),
+                    'rules' : (Rule(link_extractor,
                         process_links=process_links,
                         callback='parse_item',
                         follow=True),),
-                     'parse_item': (lambda self, response: {'url': response.url, 'body': response.body}),
+                     'parse_item': (lambda self, response: {'url': response.url,
+                                                            'body': response.body,
+                                                            'links': [link.url for link in link_extractor.extract_links(response)]}),
                      'custom_settings' : {'DOWNLOAD_DELAY': 2,
                                            'RANDOMIZE_DOWNLOAD_DELAY': False,
                                           }
                     })
-
-
-    def parse_item(self, response):
-        return {
-            'url': response.url,
-            'body': response.body
-        }
 
 class WebCrawler(Functor):
 
@@ -81,7 +77,6 @@ class WebCrawler(Functor):
             return self.apply_from_domain(domain.value, input)
         else:
             return domain
-        #return self.scrapy(spider)
 
     def apply_from_domain(self, domain, input):
         spider = self.spider_supplier({'name': domain,
