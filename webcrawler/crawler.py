@@ -14,9 +14,9 @@ from webcrawler.utils import GetDomain
 
 class Scrapy(Functor):
 
-    def __init__(self, policy: ExceptionHandler = Safe()):
+    def __init__(self, settings = {'USER_AGENT': 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)'}, policy: ExceptionHandler = Safe()):
         super().__init__(policy)
-        self.process = CrawlerProcess({'USER_AGENT': 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)'})
+        self.process = CrawlerProcess(settings)
 
     def apply(self, input):
         results = []
@@ -40,12 +40,23 @@ def process_links(links):
 
 class CrawlSpiderSupplier(Functor):
 
-    def __init__(self, policy: ExceptionHandler = Unwrap()):
-        super().__init__(policy)
 
+    def __init__(self, parse_links_getter = None, policy: ExceptionHandler = Unwrap()):
+        super().__init__(policy)
+        if parse_links_getter:
+            self.parse_links_getter = parse_links_getter
+        else:
+            self.parse_links_getter = self.default_parse_links_getter
+
+    def default_parse_links_getter(self, input):
+        link_extractor = LinkExtractor(allow=[re.escape(input['allowed_domains'][0])])
+        return lambda self, response: {'url': response.url,
+                                       'body': response.body,
+                                       'links': [link.url for link in link_extractor.extract_links(response)]}
     def apply(self, input):
         link_extractor = LinkExtractor(
                         allow=[re.escape(input['allowed_domains'][0])])
+        parse_links = self.parse_links_getter(input)
         return type("AnonymousSpiderClass",
                     (CrawlSpider,),
                     {'name' : input['name'],
@@ -55,9 +66,7 @@ class CrawlSpiderSupplier(Functor):
                         process_links=process_links,
                         callback='parse_item',
                         follow=True),),
-                     'parse_item': (lambda self, response: {'url': response.url,
-                                                            'body': response.body,
-                                                            'links': [link.url for link in link_extractor.extract_links(response)]}),
+                     'parse_item': parse_links,
                      'custom_settings' : {'DOWNLOAD_DELAY': 2,
                                            'RANDOMIZE_DOWNLOAD_DELAY': False,
                                           }
