@@ -1,9 +1,15 @@
 from io import StringIO
 import requests
 import lxml.etree as etree
-from exceptionhandling.exception_handler import ExceptionHandler, Safe
+from exceptionhandling.access import Access
+from exceptionhandling.exception_handler import ExceptionHandler, Safe, IdentityPolicy
 from exceptionhandling.functor import Functor
+from exceptionhandling.strings import Decode, Json
 from urllib.parse import urlparse
+
+from exceptionhandling.utils import Compose
+from expression import compose
+
 
 class ImFeelingLucky(Functor):
 
@@ -12,13 +18,24 @@ class ImFeelingLucky(Functor):
         self.parser = etree.HTMLParser()
         self.google_template = r'http://www.google.com/search?q={input}&btnI'
 
-    def apply(self, input):
+    def apply(self, input, **kwargs):
         var = requests.get(self.google_template.format(input = input.replace(' ', '+')))
         tree = etree.parse(StringIO(var.text), self.parser)
         return tree.xpath('//a')[0].text
 
 class GetDomain(Functor):
 
-    def apply(self, input):
+    def apply(self, input, **kwargs):
         return urlparse(input).netloc
 
+class Rest(Functor):
+    def apply(self, input, **kwargs):
+        return requests.get(input)
+
+class GetRestJson(Functor):
+    def __init__(self):
+        super().__init__(IdentityPolicy())
+        self.inner_functor = Compose(Rest(), Access('_content'), Decode(), Json())
+
+    def apply(self, input, **kwargs):
+        return self.inner_functor(input, **kwargs)

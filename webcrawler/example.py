@@ -1,12 +1,14 @@
 import re
 from scrapy.linkextractors import LinkExtractor
-from scrapy.spiders import CrawlSpider, Rule
-from w3lib.url import url_query_cleaner
 
 from webcrawler.crawler import CrawlSpiderSupplier, Scrapy, WebCrawler
-from webcrawler.utils import GetDomain
+from webcrawler.utils import GetDomain, Rest, GetRestJson
 
-web_crawler = Scrapy()
+web_crawler = Scrapy(settings = {'USER_AGENT': 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)',
+                                 'DOWNLOAD_HANDLERS' : {"http": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
+                                                        "https": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler"},
+                                'TWISTED_REACTOR' : "twisted.internet.asyncioreactor.AsyncioSelectorReactor",
+                                 'PLAYWRIGHT_DEFAULT_NAVIGATION_TIMEOUT' : 90000})
 
 parse_links = lambda input_dict: lambda self, response: {'url': response.url,
                             'body': response.body,
@@ -26,6 +28,10 @@ citadel_spider = supplier({'name' : 'citadel',
                                            'https://www.citadel.com/careers/open-opportunities/quantitative-research/',
                                            'https://www.citadel.com/careers/open-opportunities/business-operations/']})
 domain_getter = GetDomain()
+
+rest_getter = GetRestJson()
+
+jane_street = rest_getter('https://www.janestreet.com/jobs/main.json')
 
 jane_street_spider = supplier({'name' : 'jane',
                                "allowed_domains" : [domain_getter('https://www.janestreet.com/join-jane-street/open-roles/?type=experienced-candidates').value],

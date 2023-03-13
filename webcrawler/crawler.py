@@ -5,7 +5,8 @@ from exceptionhandling.functor import Functor
 from scrapy.crawler import CrawlerProcess
 from scrapy.spiders import CrawlSpider, Rule
 from scrapy.signalmanager import dispatcher
-from scrapy import signals
+from scrapy import signals, Request
+from scrapy_playwright.page import PageMethod
 from w3lib.url import url_query_cleaner
 from scrapy.linkextractors import LinkExtractor
 
@@ -18,7 +19,7 @@ class Scrapy(Functor):
         super().__init__(policy)
         self.process = CrawlerProcess(settings)
 
-    def apply(self, input):
+    def apply(self, input, **kwargs):
         results = []
         def crawler_results(signal, sender, item, response, spider):
             results.append(item)
@@ -53,7 +54,7 @@ class CrawlSpiderSupplier(Functor):
         return lambda self, response: {'url': response.url,
                                        'body': response.body,
                                        'links': [link.url for link in link_extractor.extract_links(response)]}
-    def apply(self, input):
+    def apply(self, input, **kwargs):
         link_extractor = LinkExtractor(
                         allow=[re.escape(input['allowed_domains'][0])])
         parse_links = self.parse_links_getter(input)
@@ -69,8 +70,19 @@ class CrawlSpiderSupplier(Functor):
                      'parse_item': parse_links,
                      'custom_settings' : {'DOWNLOAD_DELAY': 2,
                                            'RANDOMIZE_DOWNLOAD_DELAY': False,
-                                          }
+                                          },
+                     '_build_request' : self._build_request
                     })
+
+    def _build_request(self, rule_index, link):
+        return Request(
+            url=link.url,
+            callback=CrawlSpider._callback,
+            errback=CrawlSpider._errback,
+            meta=dict(rule=rule_index, link_text=link.text,
+                      playwright = True,
+                      playwright_include_page=True,
+                      playwright_page_methods =[PageMethod('wait_for_timeout', 10000)],))
 
 class WebCrawler(Functor):
 
@@ -80,7 +92,7 @@ class WebCrawler(Functor):
         self.spider_supplier = CrawlSpiderSupplier()
         self.scrapy = Scrapy()
 
-    def apply(self, input):
+    def apply(self, input, **kwargs):
         domain = self.get_domain(input)
         if domain.is_ok():
             return self.apply_from_domain(domain.value, input)
