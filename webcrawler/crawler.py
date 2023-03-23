@@ -7,7 +7,7 @@ from scrapy.spiders import CrawlSpider, Rule
 from scrapy.signalmanager import dispatcher
 from scrapy import signals, Request
 from scrapy_playwright.page import PageMethod
-from w3lib.url import url_query_cleaner
+import urllib
 from scrapy.linkextractors import LinkExtractor
 
 from webcrawler.utils import GetDomain
@@ -24,10 +24,10 @@ class Scrapy(Functor):
         self.process = CrawlerProcess(settings)
 
     def apply(self, input, **kwargs):
-        results = set()
+        results = []
 
         def crawler_results(signal, sender, item, response, spider):
-            [results.add(link) for link in item['links']]
+            results.append(item)
 
         dispatcher.connect(crawler_results, signal=signals.item_scraped)
 
@@ -37,12 +37,11 @@ class Scrapy(Functor):
             self.process.crawl(input)
 
         self.process.start()
-        return list(results)
+        return results
 
 
 def process_links(links):
     for link in links:
-        link.url = url_query_cleaner(link.url)
         yield link
 
 

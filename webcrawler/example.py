@@ -10,7 +10,7 @@ web_crawler = Scrapy(settings={'USER_AGENT': 'Mozilla/4.0 (compatible; MSIE 7.0;
                                    "https": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler"},
                                'TWISTED_REACTOR': "twisted.internet.asyncioreactor.AsyncioSelectorReactor",
                                'PLAYWRIGHT_DEFAULT_NAVIGATION_TIMEOUT': 90000,
-                               'DEPTH_LIMIT': 1})
+                               'DEPTH_LIMIT' : 1})
 
 parse_links = lambda input_dict: lambda self, response: {'url': response.url,
                                                          'body': response.body,
@@ -27,9 +27,6 @@ supplier = CrawlSpiderSupplier()
 #                                      'https://www.citadel.com/careers/open-opportunities/quantitative-research/',
 #                                      'https://www.citadel.com/careers/open-opportunities/business-operations/'])
 
-citadel_spider = supplier(None, name='citadel',
-                          allowed_domains=['www.citadel.com'],
-                          start_urls=['https://www.citadel.com/careers/open-opportunities/investing/'])
 domain_getter = GetDomain()
 
 rest_getter = GetRestJson()
@@ -52,9 +49,15 @@ jane_street_spider = supplier(None,
 
 capula_spider = supplier(None,
                        name='capula',
-                       allowed_domains=[domain_getter('https://fsr.cvmailuk.com/capula/main.cfm').value],
-                       start_urls=['https://fsr.cvmailuk.com/capula/main.cfm', ],
-                       allow=['jobSpecific&jobId'])
+                       allowed_domains=['fsr.cvmailuk.com'],
+                       start_urls=['https://fsr.cvmailuk.com/capula/main.cfm'],
+                       allow=[r'jobSpecific&jobId'])
+
+                       #allow=[r'.*jobSpecific&jobId.*']
+
+citadel_spider = supplier(None, name='citadel',
+                          allowed_domains=['www.citadel.com'],
+                          start_urls=['https://www.citadel.com/careers/open-opportunities/investing/'])
 
 #results = web_crawler([test_spider])
 
@@ -68,3 +71,4 @@ test_spider = supplier(None, name='test',
                        start_urls=["http://quotes.toscrape.com/author/Albert-Einstein/"])
 
 results = web_crawler([capula_spider])
+k = 2
