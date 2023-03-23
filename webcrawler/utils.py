@@ -8,7 +8,6 @@ from exceptionhandling.strings import Decode, Json
 from urllib.parse import urlparse
 
 from exceptionhandling.utils import Compose
-from expression import compose
 
 
 class ImFeelingLucky(Functor):
@@ -30,7 +29,10 @@ class GetDomain(Functor):
 
 class Rest(Functor):
     def apply(self, input, **kwargs):
-        return requests.get(input)
+        if 'headers' in kwargs:
+            return requests.get(input, headers=kwargs['headers'])
+        else:
+            return requests.get(input)
 
 class GetRestJson(Functor):
     def __init__(self):
