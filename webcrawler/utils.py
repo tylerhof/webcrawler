@@ -19,34 +19,56 @@ class ImFeelingLucky(Functor):
         self.google_template = r'http://www.google.com/search?q={input}&btnI'
 
     def apply(self, input, **kwargs):
-        var = requests.get(self.google_template.format(input = input.replace(' ', '+')))
+        var = requests.get(self.google_template.format(input=input.replace(' ', '+')))
         tree = etree.parse(StringIO(var.text), self.parser)
         return tree.xpath('//a')[0].text
+
 
 class GetDomain(Functor):
 
     def apply(self, input, **kwargs):
         return urlparse(input).netloc
 
-class Rest(Functor):
+
+class GetRest(Functor):
     def apply(self, input, **kwargs):
         if 'headers' in kwargs:
             return requests.get(input, headers=kwargs['headers'])
         else:
             return requests.get(input)
 
+
 class GetRestJson(Functor):
     def __init__(self):
         super().__init__(IdentityPolicy())
-        self.inner_functor = Compose(Rest(), Access('_content'), Decode(), Json())
+        self.inner_functor = Compose(GetRest(), Access('_content'), Decode(), Json())
 
     def apply(self, input, **kwargs):
         return self.inner_functor(input, **kwargs)
+
+
+class PostRest(Functor):
+    def apply(self, input, **kwargs):
+        if 'headers' in kwargs:
+            return requests.post(input, data=kwargs['data'], headers=kwargs['headers'])
+        else:
+            return requests.post(input, data=kwargs['data'])
+
+
+class PostRestJson(Functor):
+    def __init__(self):
+        super().__init__(IdentityPolicy())
+        self.inner_functor = Compose(PostRest(), Access('_content'), Decode(), Json())
+
+    def apply(self, input, **kwargs):
+        return self.inner_functor(input, **kwargs)
+
 
 class HtmlParser(Functor):
 
     def apply(self, input, **kwargs):
         return html.fromstring(input)
+
 
 class XPathParser(Functor):
 
