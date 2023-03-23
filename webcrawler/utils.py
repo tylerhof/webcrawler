@@ -8,6 +8,7 @@ from exceptionhandling.strings import Decode, Json
 from urllib.parse import urlparse
 
 from exceptionhandling.utils import Compose
+from lxml import html
 
 
 class ImFeelingLucky(Functor):
@@ -41,3 +42,17 @@ class GetRestJson(Functor):
 
     def apply(self, input, **kwargs):
         return self.inner_functor(input, **kwargs)
+
+class HtmlParser(Functor):
+
+    def parse(self, input, **kwargs):
+        return html.fromstring(input)
+
+class XPathParser(Functor):
+
+    def __init__(self, xpath, policy: ExceptionHandler = Safe()):
+        super().__init__(policy)
+        self.xpath = xpath
+
+    def parse(self, input, **kwargs):
+        return input.xpath(self.xpath)
