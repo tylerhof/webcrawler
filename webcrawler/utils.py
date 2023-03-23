@@ -45,7 +45,7 @@ class GetRestJson(Functor):
 
 class HtmlParser(Functor):
 
-    def parse(self, input, **kwargs):
+    def apply(self, input, **kwargs):
         return html.fromstring(input)
 
 class XPathParser(Functor):
@@ -54,5 +54,5 @@ class XPathParser(Functor):
         super().__init__(policy)
         self.xpath = xpath
 
-    def parse(self, input, **kwargs):
+    def apply(self, input, **kwargs):
         return input.xpath(self.xpath)
