@@ -5,9 +5,7 @@ from exceptionhandling.functor import Functor
 from scrapy.crawler import CrawlerProcess
 from scrapy.spiders import CrawlSpider, Rule
 from scrapy.signalmanager import dispatcher
-from scrapy import signals, Request
-from scrapy_playwright.page import PageMethod
-import urllib
+from scrapy import signals
 from scrapy.linkextractors import LinkExtractor
 
 from webcrawler.utils import GetDomain
@@ -15,12 +13,14 @@ from webcrawler.utils import GetDomain
 
 class Scrapy(Functor):
 
-    def __init__(self, settings={'USER_AGENT': 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)',
-                                 'DOWNLOAD_HANDLERS': {
-                                     "http": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
-                                     "https": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler", }},
+    def __init__(self, settings=None,
                  policy: ExceptionHandler = Safe()):
         super().__init__(policy)
+        if settings is None:
+            settings = {'USER_AGENT': 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)',
+                        'DOWNLOAD_HANDLERS': {
+                            "http": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
+                            "https": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler", }}
         self.process = CrawlerProcess(settings)
 
     def apply(self, input, **kwargs):
@@ -69,20 +69,22 @@ class CrawlSpiderSupplier(Functor):
     def apply(self, input, **kwargs):
         link_extractor = self.get_link_extractor(input, **kwargs)
         parse_links = self.parse_links_getter(input, **kwargs)
-        return type("AnonymousSpiderClass",
-                    (CrawlSpider,),
-                    {'name': kwargs['name'],
-                     'allowed_domains': kwargs['allowed_domains'],
-                     'start_urls': kwargs['start_urls'],
-                     'rules': (Rule(link_extractor,
-                                    process_links=process_links,
-                                    callback='parse_item',
-                                    follow=True),),
-                     'parse_item': parse_links,
-                     'custom_settings': {'DOWNLOAD_DELAY': 2,
-                                         'RANDOMIZE_DOWNLOAD_DELAY': False,
-                                         }
-                     })
+        spider_dict = {'name': kwargs['name'],
+                       'allowed_domains': kwargs['allowed_domains'],
+                       'start_urls': kwargs['start_urls'],
+                       'rules': (Rule(link_extractor,
+                                      process_links=process_links,
+                                      callback='parse_item',
+                                      follow=True),),
+                       'parse_item': parse_links,
+                       'custom_settings': {'DOWNLOAD_DELAY': 2,
+                                           'RANDOMIZE_DOWNLOAD_DELAY': False,
+                                           },
+                       }
+        if 'start_requests' in kwargs:
+            spider_dict['start_requests'] = kwargs['start_requests']
+        return type("AnonymousSpiderClass", (CrawlSpider,), spider_dict)
+
 
 class WebCrawler(Functor):
 

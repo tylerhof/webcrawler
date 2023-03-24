@@ -62,7 +62,7 @@ citadel_spider = supplier(None, name='citadel',
                           allowed_domains=['www.citadel.com'],
                           start_urls=['https://www.citadel.com/careers/open-opportunities/investing/'])
 
-#results = web_crawler([test_spider])
+results = web_crawler([citadel_spider])
 
 k = 2
 

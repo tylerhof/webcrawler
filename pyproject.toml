@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "webcrawler-hofmetyl"
-version = "0.0.13"
+version = "0.0.14"
 description = "Web utilities around web crawling"
 readme = "README.md"
 authors = [{ name = "Tyler Hofmeister", email = "tyler.hofmeister@gmail.com" }]
