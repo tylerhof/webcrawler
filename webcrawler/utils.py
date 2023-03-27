@@ -1,6 +1,7 @@
 import random
 from io import StringIO
 from urllib.parse import urlparse
+from googlesearch import search
 
 import lxml.etree as etree
 import requests
@@ -23,6 +24,12 @@ class ImFeelingLucky(Functor):
         var = requests.get(self.google_template.format(input=input.replace(' ', '+')))
         tree = etree.parse(StringIO(var.text), self.parser)
         return tree.xpath('//a')[0].text
+
+
+class GoogleSearch(Functor):
+
+    def apply(self, input, **kwargs):
+        return list(search(input, **kwargs))[1:]
 
 
 class GetDomain(Functor):

@@ -1,8 +1,29 @@
 import scrapy
+from playwright.sync_api import sync_playwright
 from scrapy.linkextractors import LinkExtractor
 
 from webcrawler.crawler import CrawlSpiderSupplier, Scrapy
 from webcrawler.utils import GetDomain
+
+
+
+
+with sync_playwright() as playwright:
+    browser = playwright.chromium.launch(headless=False)
+    page = browser.new_page()
+    page.goto('https://www.glassdoor.co.uk/Reviews/index.htm?overall_rating_low=3&page=1&locId=2671300&locType=C&locName=London,%20England%20(UK)&sector=10010&filterType=RATING_OVERALL')
+
+    # Wait for the alert to appear
+    #page.wait_for_selector('xpath=//a[@title="Load more"]').click()
+    page.wait_for_timeout(5000)
+    #page.wait_for_selector('xpath=//h2[@data-test="employer-short-name"')
+    #companies = page.locator('xpath=//h2[@data-test="employer-short-name"')
+    companies = page.locator('xpath=//h2[@data-test="employer-short-name"]')
+    [company.text_content() for company in page.locator('xpath=//h2[@data-test="employer-short-name"]').all()]
+
+
+
+
 
 optiver_url = 'https://optiver.com/working-at-optiver/career-opportunities/'
 
