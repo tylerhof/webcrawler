@@ -6,7 +6,8 @@ from webcrawler.utils import GetDomain
 
 optiver_url = 'https://optiver.com/working-at-optiver/career-opportunities/'
 
-link_extractor = LinkExtractor(allow=['https://optiver.com/working-at-optiver/career-opportunities/'])
+link_extractor = LinkExtractor(allow=['https://optiver.com/working-at-optiver/career-opportunities/'],
+                               deny=['https://optiver.com/working-at-optiver/career-opportunities/#roles'])
 
 async def parse(response):
     page = response.meta["playwright_page"]
@@ -19,9 +20,10 @@ async def parse(response):
         pass
     content = await page.content()
     final_response = response.replace(body=content)
+    links = link_extractor.extract_links(final_response)
     yield {'url': final_response.url,
            'body': final_response.body,
-           'links': [link.url for link in link_extractor.extract_links(final_response)]}
+           'links': [link.url for link in links if link.url != 'https://optiver.com/working-at-optiver/career-opportunities/']}
 
 
 def start_requests(self):

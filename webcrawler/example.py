@@ -31,7 +31,7 @@ domain_getter = GetDomain()
 
 rest_getter = GetRestJson()
 
-#jane_street = rest_getter('https://www.janestreet.com/jobs/main.json')
+jane_street = rest_getter('https://www.janestreet.com/jobs/main.json')
 # mlp = rest_getter('https://corsanywhere-mlp.herokuapp.com/https://wd5-services1.myworkday.com/ccx/service/customreport2/mlp/ISU_Sullivan_JobPostings/INT_External_Job_Postings_RaaS?format=json',
 #                  headers={'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/111.0',
 #                           'Origin': 'https://www.mlp.com',

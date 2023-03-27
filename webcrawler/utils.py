@@ -1,12 +1,13 @@
+import random
 from io import StringIO
-import requests
+from urllib.parse import urlparse
+
 import lxml.etree as etree
+import requests
 from exceptionhandling.access import Access
 from exceptionhandling.exception_handler import ExceptionHandler, Safe, IdentityPolicy
 from exceptionhandling.functor import Functor
 from exceptionhandling.strings import Decode, Json
-from urllib.parse import urlparse
-
 from exceptionhandling.utils import Compose
 from lxml import html
 
@@ -30,38 +31,49 @@ class GetDomain(Functor):
         return urlparse(input).netloc
 
 
+class GetProxy(Functor):
+    def __init__(self, rotating_ip_addresses=None):
+        super().__init__(IdentityPolicy())
+        if rotating_ip_addresses is None:
+            rotating_ip_addresses = []
+        self.rotating_ip_addresses = rotating_ip_addresses
+
+    def apply(self, input, **kwargs):
+        if len(self.rotating_ip_addresses) > 0:
+            proxy = random.randint(0, len(self.rotating_ip_addresses) - 1)
+            return {"http": self.rotating_ip_addresses[proxy], "https": self.rotating_ip_addresses[proxy]}
+        else:
+            return {}
+
+
 class GetRest(Functor):
     def apply(self, input, **kwargs):
-        if 'headers' in kwargs:
-            return requests.get(input, headers=kwargs['headers'])
-        else:
-            return requests.get(input)
+        return requests.get(input, **kwargs)
 
 
 class GetRestJson(Functor):
-    def __init__(self):
+    def __init__(self, rotating_ip_addresses=None):
         super().__init__(IdentityPolicy())
         self.inner_functor = Compose(GetRest(), Access('_content'), Decode(), Json())
+        self.get_proxy = GetProxy(rotating_ip_addresses)
 
     def apply(self, input, **kwargs):
-        return self.inner_functor(input, **kwargs)
+        return self.inner_functor(input, proxies=self.get_proxy(input, **kwargs), **kwargs)
 
 
 class PostRest(Functor):
     def apply(self, input, **kwargs):
-        if 'headers' in kwargs:
-            return requests.post(input, data=kwargs['data'], headers=kwargs['headers'])
-        else:
-            return requests.post(input, data=kwargs['data'])
+        return requests.post(input, **kwargs)
 
 
 class PostRestJson(Functor):
-    def __init__(self):
+    def __init__(self, rotating_ip_addresses=None):
         super().__init__(IdentityPolicy())
         self.inner_functor = Compose(PostRest(), Access('_content'), Decode(), Json())
+        self.get_proxy = GetProxy(rotating_ip_addresses)
 
     def apply(self, input, **kwargs):
-        return self.inner_functor(input, **kwargs)
+        return self.inner_functor(input, proxies=self.get_proxy(input, **kwargs), **kwargs)
 
 
 class HtmlParser(Functor):
