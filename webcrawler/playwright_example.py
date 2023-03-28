@@ -6,20 +6,24 @@ from webcrawler.crawler import CrawlSpiderSupplier, Scrapy
 from webcrawler.utils import GetDomain
 
 
+term = 'Citi Workday Careers'
+
+escaped_term = term.replace(' ', '+')
+url="http://www.google.com/search?q={}"
+
 
 
 with sync_playwright() as playwright:
     browser = playwright.chromium.launch(headless=False)
     page = browser.new_page()
-    page.goto('https://www.glassdoor.co.uk/Reviews/index.htm?overall_rating_low=3&page=1&locId=2671300&locType=C&locName=London,%20England%20(UK)&sector=10010&filterType=RATING_OVERALL')
+    page.goto(url.format(escaped_term))
 
     # Wait for the alert to appear
     #page.wait_for_selector('xpath=//a[@title="Load more"]').click()
     page.wait_for_timeout(5000)
     #page.wait_for_selector('xpath=//h2[@data-test="employer-short-name"')
     #companies = page.locator('xpath=//h2[@data-test="employer-short-name"')
-    companies = page.locator('xpath=//h2[@data-test="employer-short-name"]')
-    [company.text_content() for company in page.locator('xpath=//h2[@data-test="employer-short-name"]').all()]
+    [company.get_attribute('href') for company in page.locator('xpath=//div[@class="yuRUbf"]/a').all()]
 
 
 

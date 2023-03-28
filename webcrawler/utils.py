@@ -1,7 +1,6 @@
 import random
 from io import StringIO
 from urllib.parse import urlparse
-from googlesearch import search
 
 import lxml.etree as etree
 import requests
@@ -10,7 +9,9 @@ from exceptionhandling.exception_handler import ExceptionHandler, Safe, Identity
 from exceptionhandling.functor import Functor
 from exceptionhandling.strings import Decode, Json
 from exceptionhandling.utils import Compose
+from googlesearch import search
 from lxml import html
+from playwright.sync_api import sync_playwright
 
 
 class ImFeelingLucky(Functor):
@@ -30,6 +31,19 @@ class GoogleSearch(Functor):
 
     def apply(self, input, **kwargs):
         return list(search(input, **kwargs))[1:]
+
+
+class GoogleSearchPlaywright(Functor):
+
+    def apply(self, input, **kwargs):
+        escaped_term = input.replace(' ', '+')
+        url = "http://www.google.com/search?q={}"
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch(headless=False)
+            page = browser.new_page()
+            page.goto(url.format(escaped_term))
+            page.wait_for_timeout(5000)
+            return [company.get_attribute('href') for company in page.locator('xpath=//div[@class="yuRUbf"]/a').all()]
 
 
 class GetDomain(Functor):
